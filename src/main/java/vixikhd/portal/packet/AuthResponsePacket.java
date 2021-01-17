@@ -36,12 +36,13 @@ public class AuthResponsePacket extends Packet {
         return AuthResponsePacket.NETWORK_ID;
     }
 
-    public void handlePacket() {
+    public boolean handlePacket() {
         if(this.status != AuthResponsePacket.RESPONSE_SUCCESS) {
             Portal.getInstance().getLogger().error("Error whilst connecting to the proxy (" + this.status + "): " + this.reason);
-            return;
+            return true;
         }
 
         Portal.getInstance().getLogger().info(this.reason);
+        return true;
     }
 }

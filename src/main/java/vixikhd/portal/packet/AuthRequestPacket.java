@@ -1,7 +1,5 @@
 package vixikhd.portal.packet;
 
-import vixikhd.portal.Portal;
-
 public class AuthRequestPacket extends Packet {
 
     public static final byte NETWORK_ID = ProtocolInfo.AUTH_REQUEST_PACKET;
@@ -45,7 +43,7 @@ public class AuthRequestPacket extends Packet {
         return AuthRequestPacket.NETWORK_ID;
     }
 
-    public void handlePacket() {
-        Portal.getInstance().getLogger().error("Received AuthRequestPacket unexpectedly");
+    public boolean handlePacket() {
+        return false;
     }
 }

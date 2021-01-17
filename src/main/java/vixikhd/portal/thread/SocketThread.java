@@ -3,12 +3,9 @@ package vixikhd.portal.thread;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.utils.Binary;
 import cn.nukkit.utils.MainLogger;
-import lombok.SneakyThrows;
-import org.apache.commons.lang.ArrayUtils;
 import vixikhd.portal.packet.AuthRequestPacket;
 
-import java.net.InetSocketAddress;
-import java.net.Socket;
+import java.io.IOException;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class SocketThread extends Thread {
@@ -26,6 +23,8 @@ public class SocketThread extends Thread {
 
     private boolean isRunning;
 
+    private PortalSocket socket;
+
     public SocketThread(String host, int port, String secret, String name, String group, String address) {
         this.host = host;
         this.port = port;
@@ -37,62 +36,51 @@ public class SocketThread extends Thread {
         this.start();
     }
 
-    @SneakyThrows
     @Override
     public void run() {
-        Socket socket = this.connectToSocketServer();
+        this.connectToSocketServer();
 
         while (this.isRunning) {
             byte[] toSend;
             while ((toSend = this.sendQueue.poll()) != null) {
-                socket.getOutputStream().write(ArrayUtils.addAll(Binary.writeLInt(toSend.length), toSend));
+                this.socket.write(toSend);
             }
 
-            byte[] lengthInBytes;
+            byte[] encodedLength;
             int length;
-            int read;
             do {
-                lengthInBytes = new byte[4];
-                read = socket.getInputStream().read(lengthInBytes);
-                if(read != 4) {
-                    socket.close();
-                    socket = this.connectToSocketServer();
-                    continue;
-                }
+                encodedLength = new byte[4];
+                this.socket.read(encodedLength);
 
-                length = Binary.readLInt(lengthInBytes);
+                length = Binary.readLInt(encodedLength);
                 byte[] buffer = new byte[length];
-                read = socket.getInputStream().read(buffer);
-                if(read != length) {
-                    socket.close();
-                    socket = this.connectToSocketServer();
-                    continue;
-                }
 
                 this.receiveBuffer.add(buffer);
             }
-            while (socket.getInputStream().available() >= 4);
+            while (this.socket.canRead());
         }
 
-        socket.close();
+        this.socket.close();
     }
 
-    @SneakyThrows
-    public Socket connectToSocketServer() {
-        Socket socket;
+    private void connectToSocketServer() {
+        this.socket = new PortalSocket(this.host, this.port);
         try {
-            socket = new Socket();
-            socket.connect(new InetSocketAddress(this.host, this.port));
-        } catch (Exception e) {
-            MainLogger.getLogger().error("[Portal] Could not connect to " + this.host + ":" + this.port + ". Trying again in 10 seconds.");
-            Thread.sleep(10000);
-            return connectToSocketServer();
+            this.socket.connect();
+        } catch (IOException e) {
+            MainLogger.getLogger().error("[Portal] Could not connect to " + this.host + ":" + this.port + ": " + e.getMessage() + ". Trying again in 10 seconds.");
+            try {
+                Thread.sleep(10000);
+            } catch (InterruptedException ignore) { }
+
+            connectToSocketServer();
+            return;
         }
+
+        MainLogger.getLogger().info("[Portal] Successfully connected to " + this.host + ":" + this.address + "!");
 
         AuthRequestPacket pk = AuthRequestPacket.create(AuthRequestPacket.CLIENT_TYPE_SERVER, this.secret, this.name, this.group, this.address);
         this.addPacketToQueue(pk);
-
-        return socket;
     }
 
     public void addPacketToQueue(DataPacket packet) {

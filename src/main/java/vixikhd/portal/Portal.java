@@ -4,14 +4,11 @@ import cn.nukkit.event.Listener;
 import cn.nukkit.plugin.PluginBase;
 import lombok.Getter;
 import lombok.SneakyThrows;
-import vixikhd.portal.packet.AuthRequestPacket;
-import vixikhd.portal.packet.AuthResponsePacket;
-import vixikhd.portal.packet.Packet;
-import vixikhd.portal.packet.ProtocolInfo;
+import vixikhd.portal.packet.*;
 import vixikhd.portal.thread.SocketThread;
 
+import java.io.File;
 import java.net.InetAddress;
-import java.util.Arrays;
 
 public class Portal extends PluginBase implements Listener {
 
@@ -26,7 +23,11 @@ public class Portal extends PluginBase implements Listener {
 
     @SneakyThrows
     public void onEnable() {
-        this.saveResource("/config.yml");
+        if(!((new File(this.getDataFolder() + "/config.yml")).exists())) {
+            this.saveConfig();
+        }
+
+        PacketPool.init();
 
         String host = this.getConfig().getString("proxy-address");
         int port = this.getConfig().getInt("socket.port");
@@ -36,23 +37,33 @@ public class Portal extends PluginBase implements Listener {
         String group = this.getConfig().getString("server.group");
         String name = this.getConfig().getString("server.name");
 
-        String address = (host.equals("127.0.0.1") ? "127.0.0.1" : InetAddress.getLocalHost().getHostAddress()) + ":" + this.getServer().getPort();
+        String address = getBackwardsAddress(host);
 
+        this.getLogger().debug("Starting socket with backward-address=" + address + "; proxy-address=" + host + ":" + port);
         this.thread = new SocketThread(host, port, secret, name, group, address);
 
-        this.getServer().getNetwork().registerPacket(AuthRequestPacket.NETWORK_ID, AuthRequestPacket.class);
-        this.getServer().getNetwork().registerPacket(AuthResponsePacket.NETWORK_ID, AuthResponsePacket.class);
-
         this.getServer().getScheduler().scheduleRepeatingTask(new RefreshPortalThreadTask(this), 1);
+    }
+
+    @SneakyThrows
+    private String getBackwardsAddress(String targetAddress) {
+        if(targetAddress.equals("127.0.0.1")) {
+            return "127.0.0.1:" + this.getServer().getPort(); // local
+        }
+
+        return InetAddress.getLocalHost().getHostAddress() + ":" + this.getServer().getPort();
     }
 
     public void tick() {
         byte[] buffer;
         Packet packet;
         while ((buffer = this.getThread().getBuffer()) != null) {
-            packet = ProtocolInfo.getPacket(buffer);
+            packet = PacketPool.getPacket(buffer);
             assert packet != null;
-            packet.handlePacket();
+
+            if(!packet.handlePacket()) {
+                this.getLogger().error("Unexpectedly received " + packet.getClass().getName());
+            }
         }
     }
 

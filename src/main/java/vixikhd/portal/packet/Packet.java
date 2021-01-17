@@ -19,5 +19,11 @@ abstract public class Packet extends DataPacket {
 
     public abstract void decodePayload();
 
-    public abstract void handlePacket();
+    /**
+     * Handles packet
+     *
+     * @return Returns if packet could be handled by server.
+     * Returning false will show error message in the console.
+     */
+    public abstract boolean handlePacket();
 }
