@@ -15,6 +15,11 @@ abstract public class Packet extends DataPacket {
         this.decodePayload();
     }
 
+    @Override
+    public final Packet clone() {
+        return (Packet) super.clone();
+    }
+
     public abstract void encodePayload();
 
     public abstract void decodePayload();

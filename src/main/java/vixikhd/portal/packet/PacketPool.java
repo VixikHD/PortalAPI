@@ -1,9 +1,7 @@
 package vixikhd.portal.packet;
 
-import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.utils.VarInt;
 import lombok.SneakyThrows;
-import vixikhd.portal.Portal;
 
 import java.io.ByteArrayInputStream;
 
@@ -11,30 +9,30 @@ public class PacketPool {
 
     public static final int PID_MASK = 0x3ff; // 1023
 
-    private static final Class<? extends Packet>[] packetPool = new Class[256];
+    private static final Packet[] packetPool = new Packet[256];
 
     public static void init() {
-        PacketPool.registerPacket(ProtocolInfo.AUTH_REQUEST_PACKET, AuthRequestPacket.class);
-        PacketPool.registerPacket(ProtocolInfo.AUTH_RESPONSE_PACKET, AuthResponsePacket.class);
-        PacketPool.registerPacket(ProtocolInfo.TRANSFER_REQUEST_PACKET, TransferRequestPacket.class);
-        PacketPool.registerPacket(ProtocolInfo.TRANSFER_RESPONSE_PACKET, TransferResponsePacket.class);
+        PacketPool.registerPacket(ProtocolInfo.AUTH_REQUEST_PACKET, new AuthRequestPacket());
+        PacketPool.registerPacket(ProtocolInfo.AUTH_RESPONSE_PACKET, new AuthResponsePacket());
+        PacketPool.registerPacket(ProtocolInfo.TRANSFER_REQUEST_PACKET, new TransferRequestPacket());
+        PacketPool.registerPacket(ProtocolInfo.TRANSFER_RESPONSE_PACKET, new TransferResponsePacket());
     }
 
     @SneakyThrows
     public static Packet getPacket(byte[] buffer) {
         ByteArrayInputStream stream = new ByteArrayInputStream(buffer);
-        DataPacket pk = Portal.getInstance().getServer().getNetwork().getPacket((int)(VarInt.readUnsignedVarInt(stream) & PacketPool.PID_MASK));
-        if (pk instanceof Packet) {
+        Packet pk = PacketPool.packetPool[((int)(VarInt.readUnsignedVarInt(stream) & PacketPool.PID_MASK))].clone();
+        if (pk != null) {
             pk.setBuffer(buffer, buffer.length - stream.available());
             pk.decode();
 
-            return (Packet) pk;
+            return pk;
         }
 
         return null;
     }
 
-    public static void registerPacket(byte networkId, Class<? extends Packet> packet) {
+    public static void registerPacket(byte networkId, Packet packet) {
         PacketPool.packetPool[networkId & 255] = packet;
     }
 }

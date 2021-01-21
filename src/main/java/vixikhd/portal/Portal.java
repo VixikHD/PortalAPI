@@ -4,6 +4,7 @@ import cn.nukkit.event.Listener;
 import cn.nukkit.plugin.PluginBase;
 import lombok.Getter;
 import lombok.SneakyThrows;
+import vixikhd.portal.event.PortalPacketReceiveEvent;
 import vixikhd.portal.packet.*;
 import vixikhd.portal.thread.SocketThread;
 
@@ -63,7 +64,10 @@ public class Portal extends PluginBase implements Listener {
 
             if(!packet.handlePacket()) {
                 this.getLogger().error("Unexpectedly received " + packet.getClass().getName());
+                continue;
             }
+
+            this.getServer().getPluginManager().callEvent(new PortalPacketReceiveEvent(packet));
         }
     }
 
