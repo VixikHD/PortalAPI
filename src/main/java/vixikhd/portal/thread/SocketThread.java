@@ -40,6 +40,8 @@ public class SocketThread extends Thread {
     public void run() {
         this.connectToSocketServer();
 
+        long start = System.currentTimeMillis();
+
         while (this.isRunning) {
             byte[] toSend;
             while ((toSend = this.sendQueue.poll()) != null) {
@@ -54,7 +56,7 @@ public class SocketThread extends Thread {
 
             byte[] encodedLength;
             int length;
-            do {
+            while (this.socket.canRead()) {
                 encodedLength = new byte[4];
                 this.socket.read(encodedLength);
 
@@ -64,7 +66,18 @@ public class SocketThread extends Thread {
 
                 this.receiveBuffer.add(buffer);
             }
-            while (this.socket.canRead());
+
+            long time = System.currentTimeMillis() - start;
+            if(time < 200) {
+                try {
+                    Thread.sleep(200 - time);
+                } catch (InterruptedException e) {
+                    this.socket.close();
+                    return;
+                }
+            }
+
+            start = System.currentTimeMillis();
         }
 
         this.socket.close();
