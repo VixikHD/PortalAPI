@@ -43,7 +43,13 @@ public class SocketThread extends Thread {
         while (this.isRunning) {
             byte[] toSend;
             while ((toSend = this.sendQueue.poll()) != null) {
-                this.socket.write(toSend);
+                byte[] header = Binary.writeLInt(toSend.length);
+                byte[] bytes = new byte[toSend.length + header.length];
+
+                System.arraycopy(header, 0, bytes, 0, header.length);
+                System.arraycopy(toSend, 0, bytes, header.length, toSend.length);
+
+                this.socket.write(bytes);
             }
 
             byte[] encodedLength;
@@ -54,6 +60,7 @@ public class SocketThread extends Thread {
 
                 length = Binary.readLInt(encodedLength);
                 byte[] buffer = new byte[length];
+                this.socket.read(buffer);
 
                 this.receiveBuffer.add(buffer);
             }

@@ -60,7 +60,9 @@ public class Portal extends PluginBase implements Listener {
         Packet packet;
         while ((buffer = this.getThread().getBuffer()) != null) {
             packet = PacketPool.getPacket(buffer);
-            assert packet != null;
+            if(packet == null) {
+                continue;
+            }
 
             if(!packet.handlePacket()) {
                 this.getLogger().error("Unexpectedly received " + packet.getClass().getName());

@@ -82,7 +82,7 @@ public class PortalSocket  {
             this.reconnect(e);
         }
 
-        return available >= 4; // 4 bytes to get len of packet
+        return available > 4; // 4 bytes to get len of packet
     }
 
     /**
@@ -90,7 +90,7 @@ public class PortalSocket  {
      */
     public void read(byte[] bytes) {
         try {
-            this.getSocket().getInputStream().read(bytes);
+            this.getSocket().getInputStream().read(bytes, 0, bytes.length);
         } catch (IOException e) {
             this.reconnect(e);
         }

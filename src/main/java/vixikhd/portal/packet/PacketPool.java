@@ -2,12 +2,11 @@ package vixikhd.portal.packet;
 
 import cn.nukkit.utils.VarInt;
 import lombok.SneakyThrows;
+import vixikhd.portal.Portal;
 
 import java.io.ByteArrayInputStream;
 
 public class PacketPool {
-
-    public static final int PID_MASK = 0x3ff; // 1023
 
     private static final Packet[] packetPool = new Packet[256];
 
@@ -21,18 +20,21 @@ public class PacketPool {
     @SneakyThrows
     public static Packet getPacket(byte[] buffer) {
         ByteArrayInputStream stream = new ByteArrayInputStream(buffer);
-        Packet pk = PacketPool.packetPool[((int)(VarInt.readUnsignedVarInt(stream) & PacketPool.PID_MASK))].clone();
+        int pid = (int) VarInt.readUnsignedVarInt(stream);
+        Packet pk = PacketPool.packetPool[pid];
         if (pk != null) {
+            pk = pk.clone();
             pk.setBuffer(buffer, buffer.length - stream.available());
             pk.decode();
 
             return pk;
         }
 
+        Portal.getInstance().getLogger().error("Unhandled packet " + pid);
         return null;
     }
 
     public static void registerPacket(byte networkId, Packet packet) {
-        PacketPool.packetPool[networkId & 255] = packet;
+        PacketPool.packetPool[networkId & 0xff] = packet;
     }
 }
