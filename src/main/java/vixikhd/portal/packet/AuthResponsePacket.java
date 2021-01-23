@@ -13,12 +13,12 @@ public class AuthResponsePacket extends Packet {
 
     public int status;
 
-    public void decodePayload() {
-        this.status = this.getByte();
-    }
-
     public void encodePayload() {
         this.putByte((byte)this.status);
+    }
+
+    public void decodePayload() {
+        this.status = this.getByte();
     }
 
     public byte pid() {
@@ -26,12 +26,23 @@ public class AuthResponsePacket extends Packet {
     }
 
     public boolean handlePacket() {
-        if(this.status != AuthResponsePacket.RESPONSE_SUCCESS) {
-            Portal.getInstance().getLogger().error("Error whilst connecting to the proxy (" + this.status + ")");
+        if(this.status == AuthResponsePacket.RESPONSE_SUCCESS) {
+            Portal.getInstance().getLogger().info("Authentication with Portal was successful!");
             return true;
         }
 
-        Portal.getInstance().getLogger().info("Authentication with Portal was successful!");
+        String reason = "";
+        switch (this.status) {
+            case AuthResponsePacket.RESPONSE_INCORRECT_SECRET:
+                reason = "Incorrect secret";
+                break;
+            case AuthResponsePacket.RESPONSE_UNKNOWN_TYPE:
+                reason = "Invalid authentication type";
+                break;
+            case AuthResponsePacket.RESPONSE_INVALID_DATA:
+                reason = "Invalid data sent (tried to authenticate with invalid group or current server is already authenticated)";
+        }
+        Portal.getInstance().getLogger().error("Error whilst connecting to the proxy: " + reason);
         return true;
     }
 }

@@ -23,20 +23,20 @@ public class AuthRequestPacket extends Packet {
         return pk;
     }
 
-    public void decodePayload() {
-        this.type = this.getByte();
-        this.secret = this.getString();
-        this.name = this.getString();
-        this.group = this.getString();
-        this.address = this.getString();
-    }
-
     public void encodePayload() {
         this.putByte((byte)this.type);
         this.putString(this.secret);
         this.putString(this.name);
         this.putString(this.group);
         this.putString(this.address);
+    }
+
+    public void decodePayload() {
+        this.type = this.getByte();
+        this.secret = this.getString();
+        this.name = this.getString();
+        this.group = this.getString();
+        this.address = this.getString();
     }
 
     public byte pid() {

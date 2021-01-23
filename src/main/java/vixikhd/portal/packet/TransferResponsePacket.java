@@ -1,7 +1,9 @@
 package vixikhd.portal.packet;
 
+import cn.nukkit.Player;
 import vixikhd.portal.Portal;
 
+import java.util.Optional;
 import java.util.UUID;
 
 public class TransferResponsePacket extends Packet {
@@ -44,10 +46,33 @@ public class TransferResponsePacket extends Packet {
 
     @Override
     public boolean handlePacket() {
-        if(this.status != TransferResponsePacket.RESPONSE_SUCCESS) {
-            Portal.getInstance().getLogger().error("Error (" + this.status + ") whilst transferring player: " + this.reason);
+        if(this.status == TransferResponsePacket.RESPONSE_SUCCESS) {
             return true;
         }
+
+        String reason = this.reason;
+        switch (this.status) {
+            case TransferResponsePacket.RESPONSE_GROUP_NOT_FOUND:
+                reason = "Invalid group";
+                break;
+            case TransferResponsePacket.RESPONSE_SERVER_NOT_FOUND:
+                reason = "Invalid server";
+                break;
+            case TransferResponsePacket.RESPONSE_ALREADY_ON_SERVER:
+                reason = "Player is already connected to target server";
+                break;
+            case TransferResponsePacket.RESPONSE_PLAYER_NOT_FOUND:
+                reason = "Player not found";
+                break;
+        }
+
+        Optional<Player> player = Portal.getInstance().getServer().getPlayer(this.uuid);
+        String name = this.uuid.toString();
+        if(player.isPresent()) {
+            name = player.get().getName();
+        }
+
+        Portal.getInstance().getLogger().error("Error whilst transferring player " + name + ": " + reason);
         return true;
     }
 }
