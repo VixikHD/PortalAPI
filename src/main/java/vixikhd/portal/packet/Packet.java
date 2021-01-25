@@ -6,18 +6,31 @@ abstract public class Packet extends DataPacket {
 
     @Override
     public final void encode() {
-        this.reset();
+        this.offset = 0;
+        this.encodeHeader();
         this.encodePayload();
     }
 
     @Override
     public final void decode() {
+        this.offset = 0;
+        this.decodeHeader();
         this.decodePayload();
     }
 
     @Override
     public final Packet clone() {
         return (Packet) super.clone();
+    }
+
+    protected void encodeHeader() {
+        this.putByte(this.pid());
+        this.putByte((byte) (this.pid() >> 8));
+    }
+
+    protected void decodeHeader() {
+        this.getByte();
+        this.getByte();
     }
 
     public abstract void encodePayload();

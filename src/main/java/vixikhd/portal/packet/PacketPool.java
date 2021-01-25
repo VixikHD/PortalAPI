@@ -1,10 +1,7 @@
 package vixikhd.portal.packet;
 
-import cn.nukkit.utils.VarInt;
 import lombok.SneakyThrows;
 import vixikhd.portal.Portal;
-
-import java.io.ByteArrayInputStream;
 
 public class PacketPool {
 
@@ -15,16 +12,20 @@ public class PacketPool {
         PacketPool.registerPacket(ProtocolInfo.AUTH_RESPONSE_PACKET, new AuthResponsePacket());
         PacketPool.registerPacket(ProtocolInfo.TRANSFER_REQUEST_PACKET, new TransferRequestPacket());
         PacketPool.registerPacket(ProtocolInfo.TRANSFER_RESPONSE_PACKET, new TransferResponsePacket());
+        PacketPool.registerPacket(ProtocolInfo.PLAYER_INFO_REQUEST_PACKET, new PlayerInfoRequestPacket());
+        PacketPool.registerPacket(ProtocolInfo.PLAYER_INFO_RESPONSE_PACKET, new PlayerInfoResponsePacket());
     }
 
     @SneakyThrows
     public static Packet getPacket(byte[] buffer) {
-        ByteArrayInputStream stream = new ByteArrayInputStream(buffer);
-        int pid = (int) VarInt.readUnsignedVarInt(stream);
+        byte b1 = buffer[0];
+        byte b2 = buffer[1];
+
+        int pid = b1 | b2 << 8;
         Packet pk = PacketPool.packetPool[pid];
         if (pk != null) {
             pk = pk.clone();
-            pk.setBuffer(buffer, buffer.length - stream.available());
+            pk.setBuffer(buffer, 2);
             pk.decode();
 
             return pk;

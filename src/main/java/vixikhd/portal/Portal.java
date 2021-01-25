@@ -75,6 +75,8 @@ public class Portal extends PluginBase implements Listener {
     }
 
     public void onDisable() {
-        this.thread.interrupt(); // TODO - check if works
+        if(!this.thread.isInterrupted()) {
+            this.thread.interrupt(); // TODO - check if works
+        }
     }
 }
