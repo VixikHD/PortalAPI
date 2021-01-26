@@ -42,6 +42,7 @@ public class SocketThread extends Thread {
 
         long start = System.currentTimeMillis();
 
+        loop:
         while (this.isRunning) {
             byte[] toSend;
             while ((toSend = this.sendQueue.poll()) != null) {
@@ -51,21 +52,31 @@ public class SocketThread extends Thread {
                 System.arraycopy(header, 0, bytes, 0, header.length);
                 System.arraycopy(toSend, 0, bytes, header.length, toSend.length);
 
-                this.socket.write(bytes);
+                if(!this.socket.write(bytes)) {
+                    this.socket.close();
+                    this.reconnectToSocketServer();
+                    continue loop;
+                }
             }
 
-            byte[] encodedLength;
-            int length;
-            while (this.socket.canRead()) {
-                encodedLength = new byte[4];
-                this.socket.read(encodedLength);
+            byte[] encodedLength = new byte[4];
+            if(!this.socket.read(encodedLength)) {
+                this.socket.close();
+                this.reconnectToSocketServer();
+                continue;
+            }
 
-                length = Binary.readLInt(encodedLength);
-                byte[] buffer = new byte[length];
-                this.socket.read(buffer);
+            int length = Binary.readLInt(encodedLength);
+
+            byte[] buffer = new byte[length];
+            if(!this.socket.read(buffer)) {
+                this.socket.close();
+                this.reconnectToSocketServer();
+                continue;
+            }
 
                 this.receiveBuffer.add(buffer);
-            }
+
 
             long time = System.currentTimeMillis() - start;
             if(time < 200) {
@@ -76,7 +87,6 @@ public class SocketThread extends Thread {
                     return;
                 }
             }
-
             start = System.currentTimeMillis();
         }
 
@@ -85,6 +95,10 @@ public class SocketThread extends Thread {
 
     private void connectToSocketServer() {
         this.socket = new PortalSocket(this.host, this.port);
+        this.reconnectToSocketServer();
+    }
+
+    private void reconnectToSocketServer() {
         try {
             this.socket.connect();
         } catch (IOException e) {
@@ -93,7 +107,8 @@ public class SocketThread extends Thread {
                 Thread.sleep(10000);
             } catch (InterruptedException ignore) { }
 
-            connectToSocketServer();
+            this.socket.close();
+            reconnectToSocketServer();
             return;
         }
 

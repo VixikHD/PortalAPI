@@ -1,6 +1,5 @@
 package vixikhd.portal.packet;
 
-import lombok.SneakyThrows;
 import vixikhd.portal.Portal;
 
 public class PacketPool {
@@ -16,26 +15,31 @@ public class PacketPool {
         PacketPool.registerPacket(ProtocolInfo.PLAYER_INFO_RESPONSE_PACKET, new PlayerInfoResponsePacket());
     }
 
-    @SneakyThrows
     public static Packet getPacket(byte[] buffer) {
-        byte b1 = buffer[0];
-        byte b2 = buffer[1];
+        try {
+            byte b1 = buffer[0];
+            byte b2 = buffer[1];
 
-        int pid = b1 | b2 << 8;
-        Packet pk = PacketPool.packetPool[pid];
-        if (pk != null) {
-            pk = pk.clone();
-            pk.setBuffer(buffer, 2);
-            pk.decode();
+            int pid = b1 | b2 << 8;
+            Packet pk = PacketPool.packetPool[pid];
+            if (pk != null) {
+                pk = pk.clone();
+                pk.setBuffer(buffer, 2);
+                pk.decode();
 
-            return pk;
+                return pk;
+            }
+
+            Portal.getInstance().getLogger().error("Unhandled packet " + pid);
+            return null;
         }
-
-        Portal.getInstance().getLogger().error("Unhandled packet " + pid);
-        return null;
+        catch (Exception e) {
+            Portal.getInstance().getLogger().error("Unable to handle packet (" + e.getMessage() + ")");
+            return null;
+        }
     }
 
     public static void registerPacket(byte networkId, Packet packet) {
-        PacketPool.packetPool[networkId & 0xff] = packet;
+        PacketPool.packetPool[networkId] = packet;
     }
 }
