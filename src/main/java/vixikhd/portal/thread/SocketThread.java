@@ -60,23 +60,29 @@ public class SocketThread extends Thread {
             }
 
             byte[] encodedLength = new byte[4];
-            if(!this.socket.read(encodedLength)) {
+            int len = this.socket.read(encodedLength);
+            if(len == -1) {
                 this.socket.close();
                 this.reconnectToSocketServer();
+                continue;
+            }
+            if(len == 0) {
                 continue;
             }
 
             int length = Binary.readLInt(encodedLength);
 
             byte[] buffer = new byte[length];
-            if(!this.socket.read(buffer)) {
+            len = this.socket.read(buffer);
+            if(len == -1) {
                 this.socket.close();
                 this.reconnectToSocketServer();
                 continue;
             }
-
-                this.receiveBuffer.add(buffer);
-
+            if(len == 0) {
+                continue;
+            }
+            this.receiveBuffer.add(buffer);
 
             long time = System.currentTimeMillis() - start;
             if(time < 200) {

@@ -2,10 +2,12 @@ package vixikhd.portal.thread;
 
 import lombok.AccessLevel;
 import lombok.Getter;
+import vixikhd.portal.Portal;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
 
 public class PortalSocket  {
 
@@ -35,6 +37,7 @@ public class PortalSocket  {
     public void connect() throws IOException {
         if(this.getSocket() == null) {
             this.socket = new Socket();
+            this.getSocket().setSoTimeout(100);
         }
         this.getSocket().connect(new InetSocketAddress(this.getHost(), this.getPort()));
     }
@@ -51,17 +54,23 @@ public class PortalSocket  {
 
     /**
      * Basically same method as Socket.read(), but doesn't throw exception
+     *
+     * @return Read bytes count, if -1, socket is closed
      */
-    public boolean read(byte[] bytes) {
+    public int read(byte[] bytes) {
+        int len;
         try {
-            int len = this.getSocket().getInputStream().read(bytes, 0, bytes.length);
-            if(len == -1) {
-                throw new IOException("Read: Cannot read packet length (expected 4 bytes, got " + len + ")");
-            }
-        } catch (IOException e) {
-            return false;
+            len = this.getSocket().getInputStream().read(bytes, 0, bytes.length);
         }
-        return true;
+        catch (SocketTimeoutException e) {
+            return 0;
+        }
+        catch (IOException e) {
+            Portal.getInstance().getLogger().error("Error whilst reading socket: " + e.getMessage());
+            return -1;
+        }
+
+        return len;
     }
 
     /**
@@ -71,6 +80,7 @@ public class PortalSocket  {
         try {
             this.getSocket().getOutputStream().write(bytes);
         } catch (IOException e) {
+            Portal.getInstance().getLogger().error("Error whilst writing to socket: " + e.getMessage());
             return false;
         }
         return true;
