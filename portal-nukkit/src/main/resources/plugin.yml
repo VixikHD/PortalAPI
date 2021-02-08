@@ -1,0 +1,21 @@
+name: 'Portal'
+api: '1.0.0'
+description: 'Nukkit plugin implementation of portal tcp api'
+version: '1.0.0'
+main: vixikhd.portal.nukkit.Portal
+author: 'VixikHD'
+
+permissions:
+  portal.command:
+    description: Permission for all the Portal commands
+    default: op
+    children:
+      portal.command.globallist:
+        description: Permission for /globallist
+        default: op
+      portal.command.transfer:
+        description: Permission for /transfer
+        default: op
+      portal.command.playerinfo:
+        description: Permission for /playerinfo
+        default: op
