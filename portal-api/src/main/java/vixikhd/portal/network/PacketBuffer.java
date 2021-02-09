@@ -36,6 +36,14 @@ public class PacketBuffer {
         return bytes;
     }
 
+    public boolean readBoolean() {
+        return (this.readByte() & 255) == 1;
+    }
+
+    public void writeBoolean(boolean bool) {
+        this.writeByte(bool ? (byte)1 : (byte)0);
+    }
+
     public void writeUnsignedVarInt(int value) {
         while((value & -128) != 0) {
             this.writeByte((byte)(value & 127 | 128));
@@ -77,17 +85,20 @@ public class PacketBuffer {
         for(int i = 0; i < 4; i++) {
             this.buffer[this.count++] = (byte)(value >> (i << 3) & 255);
         }
-//        this.buffer[this.count++] = (byte)(value & 255);
-//        this.buffer[this.count++] = (byte)(value >> 8 & 255);
-//        this.buffer[this.count++] = (byte)(value >> 16 & 255);
-//        this.buffer[this.count++] = (byte)(value >> 24 & 255);
     }
     
     public int readLInt() {
-        return this.buffer[this.offset++] & 255 |
-                (this.buffer[this.offset++] & 255) << 8 |
-                (this.buffer[this.offset++] & 255) << 16 |
-                (this.buffer[this.offset++] & 255) << 24;
+        return this.buffer[this.offset++] & 255 | (this.buffer[this.offset++] & 255) << 8 | (this.buffer[this.offset++] & 255) << 16 | (this.buffer[this.offset++] & 255) << 24;
+    }
+
+    public void writeLShort(int value) {
+        this.ensureCapacity(this.count + 2);
+        this.buffer[this.count++] = (byte)(value & 255);
+        this.buffer[this.count++] = (byte)(value >>> 8 & 255);
+    }
+
+    public int readLShort() {
+        return (this.buffer[this.offset++] & 255) + ((this.buffer[this.offset++] & 255) << 8);
     }
 
     public void writeLLong(long value) {
@@ -95,14 +106,6 @@ public class PacketBuffer {
         for(int i = 0; i < 8; i++) {
             this.buffer[this.count++] = (byte)((int)(value >>> (i << 3)));
         }
-//        this.buffer[this.offset++] = (byte)((int)(value));
-//        this.buffer[this.offset++] = (byte)((int)(value >>> 8));
-//        this.buffer[this.offset++] = (byte)((int)(value >>> 16));
-//        this.buffer[this.offset++] = (byte)((int)(value >>> 24));
-//        this.buffer[this.offset++] = (byte)((int)(value >>> 32));
-//        this.buffer[this.offset++] = (byte)((int)(value >>> 40));
-//        this.buffer[this.offset++] = (byte)((int)(value >>> 48));
-//        this.buffer[this.offset++] = (byte)((int)(value >>> 56));
     }
 
     public long readLLong() {
@@ -112,14 +115,6 @@ public class PacketBuffer {
         }
 
         return value;
-//        return ((long)this.buffer[this.offset + 7] << 56) +
-//                ((long)(this.buffer[this.offset + 6] & 255) << 48) +
-//                ((long)(this.buffer[this.offset + 5] & 255) << 40) +
-//                ((long)(this.buffer[this.offset + 4] & 255) << 32) +
-//                ((long)(this.buffer[this.offset + 3] & 255) << 24) +
-//                ((long)(this.buffer[this.offset + 2] & 255) << 16) +
-//                ((long)(this.buffer[this.offset + 1] & 255) << 8) +
-//                ((long) (this.buffer[this.offset] & 255));
     }
 
     public void writeUUID(UUID uuid) {

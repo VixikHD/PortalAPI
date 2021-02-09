@@ -3,6 +3,7 @@ package vixikhd.portal.network.packets;
 import vixikhd.portal.network.*;
 
 @PacketId(ProtocolInfo.AUTH_REQUEST_PACKET)
+@ResponseId(ProtocolInfo.AUTH_RESPONSE_PACKET)
 @PacketDirection(PacketDirection.DIRECTION_CLIENT_PROXY)
 public class AuthRequestPacket extends Packet {
 

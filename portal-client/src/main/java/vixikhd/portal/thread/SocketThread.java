@@ -6,7 +6,6 @@ import vixikhd.portal.network.packets.AuthRequestPacket;
 import vixikhd.portal.utils.Logger;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class SocketThread extends Thread {
@@ -39,6 +38,8 @@ public class SocketThread extends Thread {
 
     @Override
     public void run() {
+        this.setName("Portal Thread");
+
         this.connectToSocketServer();
 
         long start = System.currentTimeMillis();

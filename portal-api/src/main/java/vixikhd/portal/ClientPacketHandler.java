@@ -2,19 +2,18 @@ package vixikhd.portal;
 
 import vixikhd.portal.network.Packet;
 import vixikhd.portal.network.PacketDirection;
-import vixikhd.portal.network.packets.*;
+import vixikhd.portal.network.packets.AuthResponsePacket;
+import vixikhd.portal.network.packets.PlayerInfoResponsePacket;
+import vixikhd.portal.network.packets.TransferResponsePacket;
 import vixikhd.portal.utils.Logger;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 public class ClientPacketHandler {
 
-    private final static List<Consumer<Packet>> handlers = new ArrayList<>();
-
     /**
-     * Handles packet (only in Proxy->Client direction), mostly just checks for errors
+     * Handles packet (only in Proxy->Client direction), checks for errors and calls response handlers
      *
      * @param packet packet
      * @return Returns if the packet was handled
@@ -26,8 +25,14 @@ public class ClientPacketHandler {
             return true;
         }
 
-        for(Consumer<Packet> handler : ClientPacketHandler.handlers) {
+        for(Consumer<Packet> handler : PortalAPI.getHandlers()) {
             handler.accept(packet);
+        }
+
+        Optional<Packet> request = PortalAPI.getResponseQueue().keySet().stream().filter(pk -> pk.getResponseId() == packet.getPacketId()).findFirst();
+        if(request.isPresent()) {
+            PortalAPI.getResponseQueue().remove(request.get()).accept(packet);
+            return true;
         }
 
         if(packet instanceof AuthResponsePacket) {
@@ -59,12 +64,5 @@ public class ClientPacketHandler {
 
     private static boolean handleTransfer(TransferResponsePacket packet) {
         return false; // Should be handled by plugins
-    }
-
-    /**
-     * Registers handler, consumer will be called when receiving packet from proxy.
-     */
-    public static void registerHandler(Consumer<Packet> handler) {
-        ClientPacketHandler.handlers.add(handler);
     }
 }

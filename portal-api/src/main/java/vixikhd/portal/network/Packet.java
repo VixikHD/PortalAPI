@@ -48,4 +48,22 @@ abstract public class Packet {
             return null;
         }
     }
+
+    public boolean hasResponse() {
+        return this.getClass().getAnnotation(ResponseId.class) != null;
+    }
+
+    /**
+     * @return If response exists, returns it's packet id, if doesn't, returns -1
+     */
+    public byte getResponseId() {
+        return this.hasResponse() ? this.getClass().getAnnotation(ResponseId.class).value() : -1;
+    }
+
+    /**
+     * @return Returns packet id
+     */
+    public byte getPacketId() {
+        return this.getClass().getAnnotation(PacketId.class).value();
+    }
 }

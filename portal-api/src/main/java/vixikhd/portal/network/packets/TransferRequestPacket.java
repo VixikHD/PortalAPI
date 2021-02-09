@@ -5,6 +5,7 @@ import vixikhd.portal.network.*;
 import java.util.UUID;
 
 @PacketId(ProtocolInfo.TRANSFER_REQUEST_PACKET)
+@ResponseId(ProtocolInfo.TRANSFER_RESPONSE_PACKET)
 @PacketDirection(PacketDirection.DIRECTION_CLIENT_PROXY)
 public class TransferRequestPacket extends Packet {
 

@@ -5,6 +5,7 @@ import vixikhd.portal.network.*;
 import java.util.UUID;
 
 @PacketId(ProtocolInfo.PLAYER_INFO_REQUEST_PACKET)
+@ResponseId(ProtocolInfo.PLAYER_INFO_RESPONSE_PACKET)
 @PacketDirection(PacketDirection.DIRECTION_CLIENT_PROXY)
 public class PlayerInfoRequestPacket extends Packet {
 

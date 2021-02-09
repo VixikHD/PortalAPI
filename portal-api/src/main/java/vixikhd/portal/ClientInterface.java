@@ -15,4 +15,9 @@ public interface ClientInterface {
      * @return packet packet
      */
     Packet receivePacket();
+
+    /**
+     * Stops client process
+     */
+    void stop();
 }

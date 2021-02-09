@@ -1,14 +1,25 @@
 package vixikhd.portal.gomint;
 
+import io.gomint.config.InvalidConfigurationException;
 import io.gomint.plugin.*;
+import lombok.Getter;
 import lombok.SneakyThrows;
+import vixikhd.portal.PortalAPI;
+import vixikhd.portal.PortalClient;
+import vixikhd.portal.gomint.config.PortalConfig;
 import vixikhd.portal.network.PacketPool;
 import vixikhd.portal.utils.Logger;
+import vixikhd.portal.utils.Utils;
+
+import java.io.File;
 
 @PluginName("Portal")
 @Version(major = 1, minor = 0)
-@Startup(StartupPriority.STARTUP)
+@Startup(StartupPriority.LOAD)
 public class Portal extends Plugin {
+
+    @Getter
+    private PortalConfig config;
 
     @SneakyThrows
     @Override
@@ -16,15 +27,29 @@ public class Portal extends Plugin {
         Logger.setInstance(new GoMintLogger(this.logger()));
         PacketPool.init();
 
-//        this.saveDefaultConfig();
-//
-//        String host = this.getConfig().getString("proxy-address", "127.0.0.1");
-//        int port = this.getConfig().getInt("socket.port");
-//        String secret = this.getConfig().getString("socket.secret");
-//        String group = this.getConfig().getString("server.group");
-//        String name = this.getConfig().getString("server.name");
-//
-//        PortalAPI.setClient(new PortalClient(host, port, secret, name, group, Utils.getBackwardsAddress(host) + ":" + this.server().port()));
+        this.loadConfig();
+
+        String backwardAddress = Utils.getBackwardsAddress(this.getConfig().getHost()) + ":" + this.server().port();
+        this.logger().info("Connecting to " + this.getConfig().getHost() + ":" + this.getConfig().getPort() + " [ServerAddress='" + backwardAddress + "']");
+
+        PortalAPI.registerClient(new PortalClient(
+                this.getConfig().getHost(),
+                this.getConfig().getPort(),
+                this.getConfig().getSecret(),
+                this.getConfig().getServerName(),
+                this.getConfig().getServerGroup(),
+                backwardAddress
+        ));
+    }
+
+    @Override
+    public void onUninstall() {
+        PortalAPI.unregisterClient();
+    }
+
+    private void loadConfig() throws InvalidConfigurationException {
+        this.config = new PortalConfig();
+        this.config.init(new File(this.dataFolder() + "/config.yml"));
     }
 
     public static class GoMintLogger extends Logger {

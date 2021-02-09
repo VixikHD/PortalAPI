@@ -3,8 +3,6 @@ package vixikhd.portal.network;
 import vixikhd.portal.network.packets.*;
 import vixikhd.portal.utils.Logger;
 
-import java.util.Arrays;
-
 public class PacketPool {
 
     private static final Packet[] packetPool = new Packet[256];
@@ -38,6 +36,10 @@ public class PacketPool {
             e.printStackTrace();
             return null;
         }
+    }
+
+    public static Packet getPacketById(int id) {
+        return PacketPool.packetPool[id] != null ? PacketPool.packetPool[id].clone() : null;
     }
 
     private static int decodePacketId(byte[] buffer) {

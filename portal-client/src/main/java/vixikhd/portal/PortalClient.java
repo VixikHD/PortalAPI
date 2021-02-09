@@ -47,4 +47,14 @@ public class PortalClient implements ClientInterface {
 
         return PacketPool.getPacket(buffer.getBuffer());
     }
+
+    /**
+     * Stops client process
+     */
+    @Override
+    public void stop() {
+        if(!this.thread.isInterrupted()) {
+            this.thread.interrupt();
+        }
+    }
 }

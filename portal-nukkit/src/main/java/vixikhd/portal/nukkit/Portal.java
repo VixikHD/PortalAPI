@@ -33,8 +33,13 @@ public class Portal extends PluginBase {
         String group = this.getConfig().getString("server.group");
         String name = this.getConfig().getString("server.name");
 
-        PortalAPI.setClient(new PortalClient(host, port, secret, name, group, Utils.getBackwardsAddress(host) + ":" + this.getServer().getPort()));
+        PortalAPI.registerClient(new PortalClient(host, port, secret, name, group, Utils.getBackwardsAddress(host) + ":" + this.getServer().getPort()));
         this.getServer().getScheduler().scheduleRepeatingTask(new PortalTickTask(this), 1);
+    }
+
+    @Override
+    public void onDisable() {
+        PortalAPI.unregisterClient();
     }
 
     public static class NukkitLogger extends Logger {
