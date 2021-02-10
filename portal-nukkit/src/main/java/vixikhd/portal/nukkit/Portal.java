@@ -7,6 +7,8 @@ import lombok.SneakyThrows;
 import vixikhd.portal.PortalAPI;
 import vixikhd.portal.PortalClient;
 import vixikhd.portal.network.PacketPool;
+import vixikhd.portal.nukkit.command.GlobalListCommand;
+import vixikhd.portal.nukkit.command.TransferCommand;
 import vixikhd.portal.utils.Logger;
 import vixikhd.portal.utils.Utils;
 
@@ -35,6 +37,9 @@ public class Portal extends PluginBase {
 
         PortalAPI.registerClient(new PortalClient(host, port, secret, name, group, Utils.getBackwardsAddress(host) + ":" + this.getServer().getPort()));
         this.getServer().getScheduler().scheduleRepeatingTask(new PortalTickTask(this), 1);
+
+        this.getServer().getCommandMap().register("Portal", new GlobalListCommand());
+        this.getServer().getCommandMap().register("Portal", new TransferCommand());
     }
 
     @Override

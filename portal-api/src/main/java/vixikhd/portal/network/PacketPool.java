@@ -14,6 +14,8 @@ public class PacketPool {
         PacketPool.registerPacket(ProtocolInfo.TRANSFER_RESPONSE_PACKET, new TransferResponsePacket());
         PacketPool.registerPacket(ProtocolInfo.PLAYER_INFO_REQUEST_PACKET, new PlayerInfoRequestPacket());
         PacketPool.registerPacket(ProtocolInfo.PLAYER_INFO_RESPONSE_PACKET, new PlayerInfoResponsePacket());
+        PacketPool.registerPacket(ProtocolInfo.SERVER_LIST_REQUEST_PACKET, new ServerListRequestPacket());
+        PacketPool.registerPacket(ProtocolInfo.SERVER_LIST_RESPONSE_PACKET, new ServerListResponsePacket());
     }
 
     public static Packet getPacket(byte[] buffer) {
