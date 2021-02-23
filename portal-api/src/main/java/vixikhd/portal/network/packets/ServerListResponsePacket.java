@@ -11,22 +11,22 @@ public class ServerListResponsePacket extends Packet {
 
     @Override
     public void encodePayload(PacketBuffer buffer) {
-        buffer.writeLShort(this.servers.length);
+        buffer.writeLInt(this.servers.length);
         for(ServerEntry entry : this.servers) {
             buffer.writeString(entry.name);
             buffer.writeString(entry.group);
             buffer.writeBoolean(entry.isOnline);
-            buffer.writeLShort(entry.playerCount);
+            buffer.writeLLong(entry.playerCount);
         }
     }
 
     @Override
     public void decodePayload(PacketBuffer buffer) {
-        int entryCount = buffer.readLShort();
+        int entryCount = buffer.readLInt();
 
         this.servers = new ServerEntry[entryCount];
         for(int i = 0; i < entryCount; i++) {
-            this.servers[i] = new ServerEntry(buffer.readString(), buffer.readString(), buffer.readBoolean(), buffer.readLShort());
+            this.servers[i] = new ServerEntry(buffer.readString(), buffer.readString(), buffer.readBoolean(), buffer.readLLong());
         }
     }
 
@@ -35,6 +35,6 @@ public class ServerListResponsePacket extends Packet {
         public String name;
         public String group;
         public boolean isOnline;
-        public int playerCount;
+        public long playerCount;
     }
 }

@@ -21,7 +21,7 @@ public class PacketPool {
     public static Packet getPacket(byte[] buffer) {
         try {
             int pid = PacketPool.decodePacketId(buffer);
-            Packet packet = PacketPool.packetPool[pid];
+            Packet packet = PacketPool.getPacketById(pid);
             if(packet == null) {
                 Logger.getInstance().error("Received unknown packet (pid=" + pid + ")");
                 return null;
